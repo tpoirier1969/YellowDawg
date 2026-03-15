@@ -1,65 +1,100 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Yellow Dog River Map</title>
-
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#1e2a38">
-
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css"/>
-
-<style>
-html, body {
-  margin:0;
-  height:100%;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-}
-
-#map {
-  height:100%;
-}
-
-#topbar{
-  position:absolute;
-  top:10px;
-  left:50%;
-  transform:translateX(-50%);
-  background:rgba(255,255,255,0.9);
-  padding:6px 10px;
-  border-radius:6px;
-  z-index:1000;
-  font-size:14px;
-}
-
-button{
-  margin-left:5px;
-}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#18302a" />
+  <title>Yellow Dog River Map</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
-
 <body>
+  <div id="map"></div>
 
-<div id="topbar">
-User:
-<select id="userSelect">
-<option value="Tod">Tod</option>
-<option value="Curt">Curt</option>
-<option value="Steve">Steve</option>
-</select>
-<button id="saveBtn">Export</button>
-<button id="loadBtn">Import</button>
-<input type="file" id="fileInput" style="display:none"/>
-</div>
+  <div id="topBadge">Yellow Dog River</div>
 
-<div id="map"></div>
+  <div id="controlDock" class="panel hidden-until-ready">
+    <button id="basemapBtn" class="dock-btn" title="Switch basemap">Basemap</button>
+    <button id="terrainBtn" class="dock-btn" title="Toggle 3D terrain">3D</button>
+    <button id="tiltUpBtn" class="dock-btn" title="Tilt up">Tilt +</button>
+    <button id="tiltDownBtn" class="dock-btn" title="Tilt down">Tilt −</button>
+    <button id="resetViewBtn" class="dock-btn" title="Reset view">Reset</button>
+    <button id="settingsBtn" class="dock-btn" title="Settings">⚙︎</button>
+  </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-<script src="app.js"></script>
+  <div id="legend" class="panel hidden-until-ready">
+    <div class="legend-title">Layers</div>
+    <label><input type="checkbox" data-owner="Tod" checked /> Tod notes</label>
+    <label><input type="checkbox" data-owner="Curt" checked /> Curt notes</label>
+    <label><input type="checkbox" data-owner="Steve" checked /> Steve notes</label>
+  </div>
 
+  <div id="drawBar" class="panel hidden-until-ready">
+    <div class="draw-title">Add</div>
+    <button class="feature-btn active" data-feature-type="note">Note pin</button>
+    <button class="feature-btn" data-feature-type="parking">Parking</button>
+    <button class="feature-btn" data-feature-type="camping">Camping</button>
+    <button class="feature-btn" data-feature-type="hazard">Hazard</button>
+    <button class="feature-btn" data-feature-type="stretch">Stretch line</button>
+    <button class="feature-btn" data-feature-type="access">Area / access</button>
+    <div class="draw-help" id="drawHelp">Tap the map to drop a note pin.</div>
+    <button id="finishShapeBtn" class="secondary-btn hidden">Finish shape</button>
+    <button id="cancelShapeBtn" class="secondary-btn hidden">Cancel</button>
+  </div>
+
+  <div id="identityModal" class="modal visible">
+    <div class="modal-card">
+      <h1>Who’s using this phone?</h1>
+      <p>This only needs to be set once. It stays on this phone unless you change it in Settings.</p>
+      <div class="identity-grid">
+        <button class="identity-btn" data-identity="Tod">Tod</button>
+        <button class="identity-btn" data-identity="Curt">Curt</button>
+        <button class="identity-btn" data-identity="Steve">Steve</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal">
+    <div class="modal-card settings-card">
+      <h2>Settings</h2>
+      <label class="settings-label">This phone belongs to:
+        <select id="identitySelect">
+          <option value="Tod">Tod</option>
+          <option value="Curt">Curt</option>
+          <option value="Steve">Steve</option>
+        </select>
+      </label>
+      <label class="settings-label">Thunderforest key
+        <input id="tfKeyField" type="text" readonly />
+      </label>
+      <div class="settings-actions">
+        <button id="saveSettingsBtn">Save</button>
+        <button id="closeSettingsBtn" class="secondary-btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="featureModal" class="modal">
+    <div class="modal-card feature-card">
+      <h2 id="featureModalTitle">Add feature</h2>
+      <label class="settings-label">Name / title
+        <input id="featureTitle" type="text" maxlength="120" placeholder="Cedar bend / Steve’s riffle / Upper pull-off" />
+      </label>
+      <label class="settings-label">Notes
+        <textarea id="featureNote" rows="5" maxlength="3000" placeholder="Parking, fishing, camping, water level, flies, whatever matters."></textarea>
+      </label>
+      <div class="settings-actions">
+        <button id="saveFeatureBtn">Save feature</button>
+        <button id="cancelFeatureBtn" class="secondary-btn">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
