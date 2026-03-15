@@ -90,6 +90,17 @@ const sourceState = {
   Steve: featureCollection([])
 };
 
+function startupFail(message, error) {
+  console.error(error || message);
+  alert(message + (error?.message ? `
+
+${error.message}` : ''));
+}
+
+if (window.maplibregl && !window.mapboxgl) {
+  window.mapboxgl = window.maplibregl;
+}
+
 function featureCollection(features) {
   return { type: 'FeatureCollection', features };
 }
@@ -487,6 +498,8 @@ function initMap() {
     maxZoom: 18
   });
 
+  map.on('error', event => console.error('Map error', event?.error || event));
+
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
   map.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }), 'bottom-right');
 
@@ -504,10 +517,14 @@ function bindUI() {
   identitySelect.value = getIdentity();
 
   document.querySelectorAll('.identity-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      saveIdentity(btn.dataset.identity);
-      setVisible(identityModal, false);
-      if (!map) startApp();
+    btn.addEventListener('click', async () => {
+      try {
+        saveIdentity(btn.dataset.identity);
+        setVisible(identityModal, false);
+        if (!map) await startApp();
+      } catch (error) {
+        startupFail('The map started to load, then hit a startup error.', error);
+      }
     });
   });
 
@@ -581,6 +598,16 @@ async function startApp() {
     window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(console.error), { once: true });
   }
 
+  if (!window.supabase?.createClient) {
+    throw new Error('Supabase library did not load.');
+  }
+  if (!window.maplibregl?.Map) {
+    throw new Error('MapLibre library did not load.');
+  }
+  if (window.maplibregl && !window.mapboxgl) {
+    window.mapboxgl = window.maplibregl;
+  }
+
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   initMap();
   registerRealtime();
@@ -593,7 +620,7 @@ if (!currentIdentity) {
   setVisible(identityModal, true);
 } else {
   identitySelect.value = currentIdentity;
-  startApp();
+  startApp().catch(error => startupFail('The map hit a startup error.', error));
 }
 
 window.addEventListener('keydown', (event) => {
