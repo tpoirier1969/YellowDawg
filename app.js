@@ -1,3 +1,34 @@
+const APP_VERSION = "2.4";
+
+function storageGet(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value;
+  } catch (error) {
+    console.warn(`Storage read failed for ${key}`, error);
+    return fallback;
+  }
+}
+
+function storageSet(key, value) {
+  try {
+    localStorage.setItem(key, value);
+  } catch (error) {
+    console.warn(`Storage write failed for ${key}`, error);
+  }
+}
+
+function storageGetJSON(key, fallback) {
+  const raw = storageGet(key, null);
+  if (!raw) return fallback;
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn(`Storage JSON parse failed for ${key}`, error);
+    return fallback;
+  }
+}
+
 const SUPABASE_URL = 'https://wntakzfoprthwggkidyq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_gWu_EQ1J3s0iNjeDeINJwQ_xKy8QgAJ';
 const THUNDERFOREST_KEY = 'c0ceacbdeb224697bdedd71af8b20abd';
@@ -35,14 +66,14 @@ const drawHelp = document.getElementById('drawHelp');
 const finishShapeBtn = document.getElementById('finishShapeBtn');
 const cancelShapeBtn = document.getElementById('cancelShapeBtn');
 
-let currentIdentity = localStorage.getItem(IDENTITY_KEY);
+let currentIdentity = storageGet(IDENTITY_KEY, null);
 let currentFeatureType = 'note';
 let pendingFeature = null;
 let draw = null;
 let map = null;
-let terrainEnabled = localStorage.getItem(TERRAIN_KEY) === '1';
-let currentBasemap = localStorage.getItem(BASEMAP_KEY) || 'outdoors';
-let ownerFilters = JSON.parse(localStorage.getItem(OWNER_FILTERS_KEY) || '{"Tod":true,"Curt":true,"Steve":true}');
+let terrainEnabled = storageGet(TERRAIN_KEY, '0') === '1';
+let currentBasemap = storageGet(BASEMAP_KEY, 'outdoors') || 'outdoors';
+let ownerFilters = storageGetJSON(OWNER_FILTERS_KEY, { Tod: true, Curt: true, Steve: true });
 let supabase = null;
 let currentSubscription = null;
 
@@ -128,7 +159,7 @@ function getIdentity() {
 
 function saveIdentity(identity) {
   currentIdentity = identity;
-  localStorage.setItem(IDENTITY_KEY, identity);
+  storageSet(IDENTITY_KEY, identity);
   identitySelect.value = identity;
 }
 
@@ -288,7 +319,7 @@ function updateOwnerVisibility() {
       }
     });
   });
-  localStorage.setItem(OWNER_FILTERS_KEY, JSON.stringify(ownerFilters));
+  storageSet(OWNER_FILTERS_KEY, JSON.stringify(ownerFilters));
 }
 
 function updateSource(owner, features) {
@@ -462,7 +493,7 @@ async function addPointFeature(lngLat) {
 
 function cycleBasemap() {
   currentBasemap = currentBasemap === 'outdoors' ? 'satellite' : 'outdoors';
-  localStorage.setItem(BASEMAP_KEY, currentBasemap);
+  storageSet(BASEMAP_KEY, currentBasemap);
   const center = map.getCenter();
   const zoom = map.getZoom();
   const pitch = map.getPitch();
@@ -534,9 +565,17 @@ function bindUI() {
   document.querySelectorAll('.identity-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       saveIdentity(btn.dataset.identity);
+      document.documentElement.setAttribute('data-has-identity', '1');
       identityModal.classList.remove('visible');
       updateFeatureButtonState();
     });
+  });
+
+  document.addEventListener('yd-identity-picked', (event) => {
+    const identity = event?.detail?.identity;
+    if (!identity) return;
+    saveIdentity(identity);
+    updateFeatureButtonState();
   });
 
   document.querySelectorAll('.feature-btn').forEach(btn => {
@@ -571,7 +610,7 @@ function bindUI() {
   document.getElementById('basemapBtn').addEventListener('click', cycleBasemap);
   document.getElementById('terrainBtn').addEventListener('click', () => {
     terrainEnabled = !terrainEnabled;
-    localStorage.setItem(TERRAIN_KEY, terrainEnabled ? '1' : '0');
+    storageSet(TERRAIN_KEY, terrainEnabled ? '1' : '0');
     setTerrainState();
   });
   document.getElementById('tiltUpBtn').addEventListener('click', () => map.easeTo({ pitch: Math.min(75, map.getPitch() + 8), duration: 250 }));
@@ -637,8 +676,10 @@ async function startApp() {
 bindUI();
 
 if (!currentIdentity) {
+  document.documentElement.setAttribute('data-has-identity', '0');
   identityModal.classList.add('visible');
 } else {
+  document.documentElement.setAttribute('data-has-identity', '1');
   identitySelect.value = currentIdentity;
   identityModal.classList.remove('visible');
 }

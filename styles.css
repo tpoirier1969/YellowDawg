@@ -74,3 +74,5 @@ textarea { resize: vertical; }
   .feature-btn { min-width: 82px; flex: 1 1 auto; }
   .identity-grid { grid-template-columns: 1fr; }
 }
+
+html[data-has-identity="1"] #identityModal { display: none !important; }

@@ -4,16 +4,37 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#18302a" />
-  <title>Yellow Dog River Map v2.3</title>
+  <title>Yellow Dog River Map v2.4</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.css" />
   <link rel="stylesheet" href="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.css" />
   <link rel="stylesheet" href="styles.css" />
+  <script>
+    window.YD_VERSION = "2.4";
+    window.YD_IDENTITY_KEY = "yellowdog.identity";
+    window.ydPickIdentity = function(name) {
+      try { localStorage.setItem(window.YD_IDENTITY_KEY, name); } catch (e) {}
+      document.documentElement.setAttribute('data-has-identity', '1');
+      var modal = document.getElementById('identityModal');
+      if (modal) modal.classList.remove('visible');
+      var select = document.getElementById('identitySelect');
+      if (select) select.value = name;
+      document.dispatchEvent(new CustomEvent('yd-identity-picked', { detail: { identity: name } }));
+    };
+    (function() {
+      try {
+        var current = localStorage.getItem(window.YD_IDENTITY_KEY);
+        document.documentElement.setAttribute('data-has-identity', current ? '1' : '0');
+      } catch (e) {
+        document.documentElement.setAttribute('data-has-identity', '0');
+      }
+    })();
+  </script>
 </head>
 <body>
   <div id="map"></div>
 
-  <div id="topBadge">Yellow Dog River v2.3</div>
+  <div id="topBadge">Yellow Dog River v2.4</div>
 
   <div id="controlDock" class="panel hidden-until-ready">
     <button id="basemapBtn" class="dock-btn" title="Switch basemap">Basemap</button>
@@ -49,9 +70,9 @@
       <h1>Who’s using this phone?</h1>
       <p>This only needs to be set once. It stays on this phone unless you change it in Settings.</p>
       <div class="identity-grid">
-        <button class="identity-btn" data-identity="Tod">Tod</button>
-        <button class="identity-btn" data-identity="Curt">Curt</button>
-        <button class="identity-btn" data-identity="Steve">Steve</button>
+        <button class="identity-btn" data-identity="Tod" onclick="ydPickIdentity('Tod')">Tod</button>
+        <button class="identity-btn" data-identity="Curt" onclick="ydPickIdentity('Curt')">Curt</button>
+        <button class="identity-btn" data-identity="Steve" onclick="ydPickIdentity('Steve')">Steve</button>
       </div>
     </div>
   </div>
