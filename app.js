@@ -50,6 +50,7 @@ const defaultCenter = [-87.886, 46.761];
 const defaultZoom = 12.9;
 const defaultPitch = 38;
 const defaultBearing = -14;
+let appStarted = false;
 
 const corridorOuter = {
   type: 'Feature',
@@ -99,6 +100,14 @@ ${error.message}` : ''));
 
 if (window.maplibregl && !window.mapboxgl) {
   window.mapboxgl = window.maplibregl;
+}
+
+if (window.MapboxDraw?.constants?.classes) {
+  MapboxDraw.constants.classes.CANVAS = 'maplibregl-canvas';
+  MapboxDraw.constants.classes.CONTROL_BASE = 'maplibregl-ctrl';
+  MapboxDraw.constants.classes.CONTROL_PREFIX = 'maplibregl-ctrl-';
+  MapboxDraw.constants.classes.CONTROL_GROUP = 'maplibregl-ctrl-group';
+  MapboxDraw.constants.classes.ATTRIBUTION = 'maplibregl-ctrl-attrib';
 }
 
 function featureCollection(features) {
@@ -503,7 +512,13 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
   map.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }), 'bottom-right');
 
-  map.on('load', onStyleReady);
+  map.on('load', () => {
+    try {
+      onStyleReady();
+    } catch (error) {
+      startupFail('The map loaded, then hit an error while turning on editing tools.', error);
+    }
+  });
   map.on('click', event => {
     if (FEATURE_META[currentFeatureType].geometry !== 'point' || featureModal.classList.contains('visible')) return;
     const hits = map.queryRenderedFeatures(event.point, { layers: ['Tod-point','Curt-point','Steve-point','Tod-line','Curt-line','Steve-line','Tod-polygon-fill','Curt-polygon-fill','Steve-polygon-fill'] });
@@ -517,14 +532,10 @@ function bindUI() {
   identitySelect.value = getIdentity();
 
   document.querySelectorAll('.identity-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      try {
-        saveIdentity(btn.dataset.identity);
-        setVisible(identityModal, false);
-        if (!map) await startApp();
-      } catch (error) {
-        startupFail('The map started to load, then hit a startup error.', error);
-      }
+    btn.addEventListener('click', () => {
+      saveIdentity(btn.dataset.identity);
+      identityModal.classList.remove('visible');
+      updateFeatureButtonState();
     });
   });
 
@@ -594,6 +605,8 @@ function finishCurrentShape() {
 }
 
 async function startApp() {
+  if (appStarted) return;
+  appStarted = true;
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('./service-worker.js').catch(console.error), { once: true });
   }
@@ -607,6 +620,13 @@ async function startApp() {
   if (window.maplibregl && !window.mapboxgl) {
     window.mapboxgl = window.maplibregl;
   }
+  if (window.MapboxDraw?.constants?.classes) {
+    MapboxDraw.constants.classes.CANVAS = 'maplibregl-canvas';
+    MapboxDraw.constants.classes.CONTROL_BASE = 'maplibregl-ctrl';
+    MapboxDraw.constants.classes.CONTROL_PREFIX = 'maplibregl-ctrl-';
+    MapboxDraw.constants.classes.CONTROL_GROUP = 'maplibregl-ctrl-group';
+    MapboxDraw.constants.classes.ATTRIBUTION = 'maplibregl-ctrl-attrib';
+  }
 
   supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   initMap();
@@ -617,11 +637,13 @@ async function startApp() {
 bindUI();
 
 if (!currentIdentity) {
-  setVisible(identityModal, true);
+  identityModal.classList.add('visible');
 } else {
   identitySelect.value = currentIdentity;
-  startApp().catch(error => startupFail('The map hit a startup error.', error));
+  identityModal.classList.remove('visible');
 }
+
+startApp().catch(error => startupFail('The map hit a startup error.', error));
 
 window.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') {

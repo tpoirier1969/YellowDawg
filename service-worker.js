@@ -1,4 +1,4 @@
-const CACHE = 'yellow-dog-map-v2';
+const CACHE = 'yellow-dog-map-v2-3';
 const ASSETS = [
   './',
   './index.html',
