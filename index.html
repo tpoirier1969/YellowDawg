@@ -4,13 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#18302a" />
-  <title>Yellow Dog River Map v2.6</title>
+  <title>Yellow Dog River Map v2.7</title>
   <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.css" />
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
   <link rel="stylesheet" href="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.css" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=2.7" />
   <script>
-    window.YD_VERSION = "2.6";
+    window.YD_VERSION = "2.7";
     window.YD_IDENTITY_KEY = "yellowdog.identity";
     window.ydPickIdentity = function(name) {
       try { localStorage.setItem(window.YD_IDENTITY_KEY, name); } catch (e) {}
@@ -34,8 +34,8 @@
 <body>
   <div id="map"></div>
 
-  <div id="topBadge">Yellow Dog River v2.6</div>
-  <div id="statusBadge">Loading map… If Outdoors flakes out, it will fall back to satellite automatically.</div>
+  <div id="topBadge">Yellow Dog River v2.7</div>
+  <div id="statusBadge">Loading map…</div>
 
   <div id="controlDock" class="panel hidden-until-ready">
     <button id="basemapBtn" class="dock-btn" title="Switch basemap">Basemap</button>
@@ -114,9 +114,9 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/maplibre-gl@5.3.0/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=2.7"></script>
 </body>
 </html>

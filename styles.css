@@ -74,12 +74,11 @@ textarea { resize: vertical; }
   .feature-btn { min-width: 82px; flex: 1 1 auto; }
   .identity-grid { grid-template-columns: 1fr; }
 }
-
 html[data-has-identity="1"] #identityModal { display: none !important; }
-
 #statusBadge {
   position: fixed; left: 12px; bottom: max(12px, env(safe-area-inset-bottom)); z-index: 35;
   background: rgba(8,18,16,.78); color: #eef3f1; padding: 8px 10px; border-radius: 10px;
-  font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.25); max-width: min(70vw, 340px);
+  font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.25); max-width: min(78vw, 360px);
+  line-height: 1.35;
 }
 .app-ready #statusBadge { display: none; }
