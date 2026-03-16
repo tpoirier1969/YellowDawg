@@ -7,36 +7,23 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Yellow Dog">
-  <title>Yellow Dog River Map v3.2</title>
+  <title>Yellow Dog River Map v3.2.1</title>
   <link rel="manifest" href="manifest.json">
   <link rel="apple-touch-icon" href="icon-192.png">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
-  <link rel="stylesheet" href="styles.css?v=3.2">
+  <link rel="stylesheet" href="styles.css?v=3.2.1">
 </head>
 <body>
   <div id="map"></div>
-  <div id="topBadge">Yellow Dog River v3.2</div>
+  <div id="topBadge">Yellow Dog River v3.2.1</div>
   <div id="statusBadge">Booting map…</div>
-
-  <div id="legend" class="panel hidden-until-ready">
-    <div class="panel-title">Layers</div>
-    <label><input type="checkbox" data-owner="Tod" checked> Tod notes</label>
-    <label><input type="checkbox" data-owner="Curt" checked> Curt notes</label>
-    <label><input type="checkbox" data-owner="Steve" checked> Steve notes</label>
-  </div>
-
   <div id="topControls" class="panel hidden-until-ready">
     <button id="basemapBtn">Basemap</button>
     <button id="refreshBtn">Refresh</button>
-    <button id="settingsBtn">Settings</button>
   </div>
 
-  <div id="drawHelp" class="panel hidden-until-ready">
-    The map should load first. Shared notes load after that.
-  </div>
-
-  <div id="identityModal" class="modal">
+<div id="identityModal" class="modal">
     <div class="modal-card">
       <h1>Who’s using this phone?</h1>
       <p>This only needs to be set once. It stays on this phone unless you change it in Settings.</p>
@@ -73,26 +60,11 @@
       </div>
     </div>
   </div>
-
-  <div id="settingsModal" class="modal">
-    <div class="modal-card">
-      <h2>Settings</h2>
-      <label>This phone belongs to
-        <select id="identitySelect">
-          <option value="Tod">Tod</option>
-          <option value="Curt">Curt</option>
-          <option value="Steve">Steve</option>
-        </select>
-      </label>
-      <div class="button-row">
-        <button id="saveSettingsBtn">Save</button>
-        <button id="closeSettingsBtn" class="secondary">Close</button>
-      </div>
-    </div>
+</div>
   </div>
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
-  <script src="app.js?v=3.2"></script>
+  <script src="app.js?v=3.2.1"></script>
 </body>
 </html>

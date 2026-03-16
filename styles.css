@@ -25,11 +25,7 @@ body { background: #12201c; overflow: hidden; }
 .panel { border-radius: var(--panel-radius); padding: 10px 12px; }
 .hidden-until-ready { opacity: 0; pointer-events: none; }
 .app-ready .hidden-until-ready { opacity: 1; pointer-events: auto; }
-#legend { top: max(60px, calc(env(safe-area-inset-top) + 50px)); left: 12px; min-width: 152px; }
-#legend label { display: block; margin-top: 8px; font-size: 14px; }
-.panel-title { font-weight: 700; margin-bottom: 4px; }
 #topControls { top: max(60px, calc(env(safe-area-inset-top) + 50px)); right: 12px; display: flex; gap: 8px; }
-#drawHelp { left: 12px; right: 12px; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 48px); font-size: 13px; }
 button, select, input, textarea { font: inherit; border-radius: 10px; border: 1px solid rgba(0,0,0,.14); }
 button, select { padding: 9px 11px; }
 button { background: rgba(255,255,255,.12); color: var(--text); border-color: rgba(255,255,255,.1); }
@@ -52,7 +48,6 @@ button.secondary { background: rgba(0,0,0,.07); color: #17211d; border-color: rg
 .popup-meta { font-size: 11px; opacity: .7; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
 .popup-note { font-size: 14px; line-height: 1.35; white-space: pre-wrap; }
 @media (max-width: 760px) {
-  #legend { top: auto; bottom: calc(max(12px, env(safe-area-inset-bottom)) + 118px); }
   #topControls { flex-direction: column; }
   .identity-grid { grid-template-columns: 1fr; }
 }

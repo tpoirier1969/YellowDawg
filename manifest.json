@@ -2,7 +2,7 @@
   "name": "Yellow Dog River Map",
   "short_name": "YellowDog",
   "display": "standalone",
-  "start_url": "./index.html?v=3.2",
+  "start_url": "./index.html?v=3.2.1",
   "background_color": "#18302a",
   "theme_color": "#18302a",
   "icons": [

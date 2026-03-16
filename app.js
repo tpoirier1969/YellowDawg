@@ -1,11 +1,10 @@
-const VERSION = '3.2';
+const VERSION = '3.2.1';
 const SUPABASE_URL = 'https://wntakzfoprthwggkidyq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_gWu_EQ1J3s0iNjeDeINJwQ_xKy8QgAJ';
 const THUNDERFOREST_KEY = 'c0ceacbdeb224697bdedd71af8b20abd';
 
 const IDENTITY_KEY = 'yellowdog.identity';
 const BASEMAP_KEY = 'yellowdog.basemap';
-const FILTERS_KEY = 'yellowdog.filters';
 
 const DEFAULT_CENTER = [46.762, -87.892];
 const DEFAULT_ZOOM = 13;
@@ -15,7 +14,7 @@ const TYPE_DEFAULTS = { note:'Note', parking:'Parking', camping:'Camping', hazar
 
 let currentIdentity = safeStorageGet(IDENTITY_KEY, '');
 let currentBasemap = safeStorageGet(BASEMAP_KEY, 'outdoors');
-let ownerFilters = safeStorageGetJSON(FILTERS_KEY, { Tod:true, Curt:true, Steve:true });
+let ownerFilters = { Tod:true, Curt:true, Steve:true };
 let pendingLayer = null;
 let featureGroups = {};
 let map = null;
@@ -26,7 +25,6 @@ let lastHash = '';
 const statusBadge = document.getElementById('statusBadge');
 const identityModal = document.getElementById('identityModal');
 const featureModal = document.getElementById('featureModal');
-const settingsModal = document.getElementById('settingsModal');
 const identitySelect = document.getElementById('identitySelect');
 const featureTypeSelect = document.getElementById('featureType');
 const featureTitleInput = document.getElementById('featureTitle');
@@ -212,27 +210,6 @@ function bindIdentityUI() {
     });
   });
   if (!currentIdentity) identityModal.classList.add('visible');
-
-  document.getElementById('settingsBtn').addEventListener('click', () => {
-    identitySelect.value = currentIdentity || 'Tod';
-    settingsModal.classList.add('visible');
-  });
-  document.getElementById('saveSettingsBtn').addEventListener('click', () => {
-    currentIdentity = identitySelect.value;
-    safeStorageSet(IDENTITY_KEY, currentIdentity);
-    settingsModal.classList.remove('visible');
-  });
-  document.getElementById('closeSettingsBtn').addEventListener('click', () => settingsModal.classList.remove('visible'));
-}
-function bindLayerToggles() {
-  document.querySelectorAll('#legend input[type="checkbox"]').forEach(cb => {
-    cb.checked = ownerFilters[cb.dataset.owner] !== false;
-    cb.addEventListener('change', () => {
-      ownerFilters[cb.dataset.owner] = cb.checked;
-      safeStorageSet(FILTERS_KEY, JSON.stringify(ownerFilters));
-      applyOwnerFilters();
-    });
-  });
 }
 function guessTypeFromLayer(layer) {
   if (layer instanceof L.Marker) return 'note';
@@ -288,7 +265,6 @@ function bindFeatureModal() {
   document.getElementById('cancelFeatureBtn').addEventListener('click', cancelPendingFeature);
   document.getElementById('saveFeatureBtn').addEventListener('click', savePendingFeature);
   featureModal.addEventListener('click', event => { if (event.target === featureModal) cancelPendingFeature(); });
-  settingsModal.addEventListener('click', event => { if (event.target === settingsModal) settingsModal.classList.remove('visible'); });
   identityModal.addEventListener('click', event => { if (event.target === identityModal && currentIdentity) identityModal.classList.remove('visible'); });
 }
 function startPolling() {
@@ -297,7 +273,6 @@ function startPolling() {
 }
 function startApp() {
   bindIdentityUI();
-  bindLayerToggles();
   bindFeatureModal();
   initMap();
   setTimeout(() => { loadFeatures(); startPolling(); }, 250);
