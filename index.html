@@ -1,122 +1,99 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#18302a" />
-  <title>Yellow Dog River Map v2.7</title>
-  <link rel="manifest" href="manifest.json" />
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
-  <link rel="stylesheet" href="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.css" />
-  <link rel="stylesheet" href="styles.css?v=2.7" />
-  <script>
-    window.YD_VERSION = "2.7";
-    window.YD_IDENTITY_KEY = "yellowdog.identity";
-    window.ydPickIdentity = function(name) {
-      try { localStorage.setItem(window.YD_IDENTITY_KEY, name); } catch (e) {}
-      document.documentElement.setAttribute('data-has-identity', '1');
-      var modal = document.getElementById('identityModal');
-      if (modal) modal.classList.remove('visible');
-      var select = document.getElementById('identitySelect');
-      if (select) select.value = name;
-      document.dispatchEvent(new CustomEvent('yd-identity-picked', { detail: { identity: name } }));
-    };
-    (function() {
-      try {
-        var current = localStorage.getItem(window.YD_IDENTITY_KEY);
-        document.documentElement.setAttribute('data-has-identity', current ? '1' : '0');
-      } catch (e) {
-        document.documentElement.setAttribute('data-has-identity', '0');
-      }
-    })();
-  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#18302a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Yellow Dog">
+  <title>Yellow Dog River Map v3.0</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css">
+  <link rel="stylesheet" href="styles.css?v=3.0">
 </head>
 <body>
   <div id="map"></div>
-
-  <div id="topBadge">Yellow Dog River v2.7</div>
-  <div id="statusBadge">Loading map…</div>
-
-  <div id="controlDock" class="panel hidden-until-ready">
-    <button id="basemapBtn" class="dock-btn" title="Switch basemap">Basemap</button>
-    <button id="terrainBtn" class="dock-btn" title="Toggle 3D terrain">3D</button>
-    <button id="tiltUpBtn" class="dock-btn" title="Tilt up">Tilt +</button>
-    <button id="tiltDownBtn" class="dock-btn" title="Tilt down">Tilt −</button>
-    <button id="resetViewBtn" class="dock-btn" title="Reset view">Reset</button>
-    <button id="settingsBtn" class="dock-btn" title="Settings">⚙︎</button>
-  </div>
+  <div id="topBadge">Yellow Dog River v3.0</div>
+  <div id="statusBadge">Starting map…</div>
 
   <div id="legend" class="panel hidden-until-ready">
-    <div class="legend-title">Layers</div>
-    <label><input type="checkbox" data-owner="Tod" checked /> Tod notes</label>
-    <label><input type="checkbox" data-owner="Curt" checked /> Curt notes</label>
-    <label><input type="checkbox" data-owner="Steve" checked /> Steve notes</label>
+    <div class="panel-title">Layers</div>
+    <label><input type="checkbox" data-owner="Tod" checked> Tod notes</label>
+    <label><input type="checkbox" data-owner="Curt" checked> Curt notes</label>
+    <label><input type="checkbox" data-owner="Steve" checked> Steve notes</label>
   </div>
 
-  <div id="drawBar" class="panel hidden-until-ready">
-    <div class="draw-title">Add</div>
-    <button class="feature-btn active" data-feature-type="note">Note pin</button>
-    <button class="feature-btn" data-feature-type="parking">Parking</button>
-    <button class="feature-btn" data-feature-type="camping">Camping</button>
-    <button class="feature-btn" data-feature-type="hazard">Hazard</button>
-    <button class="feature-btn" data-feature-type="stretch">Stretch line</button>
-    <button class="feature-btn" data-feature-type="access">Area / access</button>
-    <div class="draw-help" id="drawHelp">Tap the map to drop a note pin.</div>
-    <button id="finishShapeBtn" class="secondary-btn hidden">Finish shape</button>
-    <button id="cancelShapeBtn" class="secondary-btn hidden">Cancel</button>
+  <div id="topControls" class="panel hidden-until-ready">
+    <button id="basemapBtn">Basemap</button>
+    <button id="refreshBtn">Refresh</button>
+    <button id="settingsBtn">Settings</button>
   </div>
 
-  <div id="identityModal" class="modal visible">
+  <div id="drawHelp" class="panel hidden-until-ready">
+    Use the draw tools at left to add a marker, stretch line, or area.
+  </div>
+
+  <div id="identityModal" class="modal">
     <div class="modal-card">
       <h1>Who’s using this phone?</h1>
       <p>This only needs to be set once. It stays on this phone unless you change it in Settings.</p>
       <div class="identity-grid">
-        <button class="identity-btn" data-identity="Tod" onclick="ydPickIdentity('Tod')">Tod</button>
-        <button class="identity-btn" data-identity="Curt" onclick="ydPickIdentity('Curt')">Curt</button>
-        <button class="identity-btn" data-identity="Steve" onclick="ydPickIdentity('Steve')">Steve</button>
+        <button class="identityBtn" data-name="Tod">Tod</button>
+        <button class="identityBtn" data-name="Curt">Curt</button>
+        <button class="identityBtn" data-name="Steve">Steve</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="featureModal" class="modal">
+    <div class="modal-card">
+      <h2>Add feature</h2>
+      <label>Feature type
+        <select id="featureType">
+          <option value="note">Note</option>
+          <option value="parking">Parking</option>
+          <option value="camping">Camping</option>
+          <option value="hazard">Hazard</option>
+          <option value="stretch">Stretch</option>
+          <option value="access">Area / Access</option>
+        </select>
+      </label>
+      <label>Title
+        <input id="featureTitle" type="text" maxlength="120" placeholder="Cedar bend / pull-off / camp spot">
+      </label>
+      <label>Notes
+        <textarea id="featureNote" rows="5" maxlength="3000" placeholder="Fishing, parking, camping, flows, whatever matters."></textarea>
+      </label>
+      <div class="button-row">
+        <button id="saveFeatureBtn">Save feature</button>
+        <button id="cancelFeatureBtn" class="secondary">Cancel</button>
       </div>
     </div>
   </div>
 
   <div id="settingsModal" class="modal">
-    <div class="modal-card settings-card">
+    <div class="modal-card">
       <h2>Settings</h2>
-      <label class="settings-label">This phone belongs to:
+      <label>This phone belongs to
         <select id="identitySelect">
           <option value="Tod">Tod</option>
           <option value="Curt">Curt</option>
           <option value="Steve">Steve</option>
         </select>
       </label>
-      <label class="settings-label">Thunderforest key
-        <input id="tfKeyField" type="text" readonly />
-      </label>
-      <div class="settings-actions">
+      <div class="button-row">
         <button id="saveSettingsBtn">Save</button>
-        <button id="closeSettingsBtn" class="secondary-btn">Close</button>
+        <button id="closeSettingsBtn" class="secondary">Close</button>
       </div>
     </div>
   </div>
 
-  <div id="featureModal" class="modal">
-    <div class="modal-card feature-card">
-      <h2 id="featureModalTitle">Add feature</h2>
-      <label class="settings-label">Name / title
-        <input id="featureTitle" type="text" maxlength="120" placeholder="Cedar bend / Steve’s riffle / Upper pull-off" />
-      </label>
-      <label class="settings-label">Notes
-        <textarea id="featureNote" rows="5" maxlength="3000" placeholder="Parking, fishing, camping, water level, flies, whatever matters."></textarea>
-      </label>
-      <div class="settings-actions">
-        <button id="saveFeatureBtn">Save feature</button>
-        <button id="cancelFeatureBtn" class="secondary-btn">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="https://unpkg.com/@mapbox/mapbox-gl-draw@1.5.0/dist/mapbox-gl-draw.js"></script>
-  <script src="app.js?v=2.7"></script>
+  <script src="app.js?v=3.0"></script>
 </body>
 </html>
