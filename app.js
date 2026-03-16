@@ -1,4 +1,4 @@
-const APP_VERSION = "2.4";
+const APP_VERSION = "2.6";
 
 function storageGet(key, fallback = null) {
   try {
@@ -72,15 +72,15 @@ let pendingFeature = null;
 let draw = null;
 let map = null;
 let terrainEnabled = storageGet(TERRAIN_KEY, '0') === '1';
-let currentBasemap = storageGet(BASEMAP_KEY, 'outdoors') || 'outdoors';
+let currentBasemap = storageGet(BASEMAP_KEY, 'satellite') || 'satellite';
 let ownerFilters = storageGetJSON(OWNER_FILTERS_KEY, { Tod: true, Curt: true, Steve: true });
 let supabase = null;
 let currentSubscription = null;
 
 const defaultCenter = [-87.886, 46.761];
 const defaultZoom = 12.9;
-const defaultPitch = 38;
-const defaultBearing = -14;
+const defaultPitch = 0;
+const defaultBearing = 0;
 let appStarted = false;
 
 const corridorOuter = {
@@ -193,13 +193,12 @@ function styleForBasemap(name) {
     hybridLabels: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
   };
 
-  const style = {
+  return {
     version: 8,
-    glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
     sources: {
       basemap: {
         type: 'raster',
-        tiles: [rasterTiles[name]],
+        tiles: [rasterTiles[name] || rasterTiles.satellite],
         tileSize: 256,
         attribution: name === 'outdoors'
           ? 'Maps © Thunderforest, Data © OpenStreetMap contributors'
@@ -213,40 +212,20 @@ function styleForBasemap(name) {
           attribution: 'Labels © Esri'
         }
       } : {}),
-      terrainSource: {
-        type: 'raster-dem',
-        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        encoding: 'terrarium',
-        maxzoom: 15,
-        attribution: 'Elevation © elevation-tiles-prod'
-      },
-      corridor: { type: 'geojson', data: featureCollection([corridorOuter, corridorInner, corridorCore]) },
       Tod: { type: 'geojson', data: sourceState.Tod },
       Curt: { type: 'geojson', data: sourceState.Curt },
-      Steve: { type: 'geojson', data: sourceState.Steve }
+      Steve: { type: 'geojson', data: sourceState.Steve },
+      corridorCore: { type: 'geojson', data: featureCollection([corridorCore]) }
     },
     layers: [
       { id: 'basemap', type: 'raster', source: 'basemap' },
       ...(name === 'satellite' ? [{ id: 'satellite-labels', type: 'raster', source: 'labels', paint: { 'raster-opacity': 0.85 } }] : []),
       {
-        id: 'corridor-mask', type: 'fill', source: 'corridor',
-        filter: ['==', ['get', 'kind'], 'outer-mask'],
-        paint: { 'fill-color': '#041411', 'fill-opacity': 0.26 }
+        id: 'corridor-glow', type: 'line', source: 'corridorCore',
+        paint: { 'line-color': '#b8f3e1', 'line-width': 10, 'line-opacity': 0.18, 'line-blur': 1.2 }
       },
       {
-        id: 'corridor-window', type: 'fill', source: 'corridor',
-        filter: ['==', ['get', 'kind'], 'inner-spotlight'],
-        paint: { 'fill-color': '#dfe7d7', 'fill-opacity': 0.05 }
-      },
-      {
-        id: 'corridor-glow', type: 'line', source: 'corridor',
-        filter: ['==', ['get', 'kind'], 'river-core'],
-        paint: { 'line-color': '#b8f3e1', 'line-width': 8, 'line-opacity': 0.18 }
-      },
-      {
-        id: 'corridor-core', type: 'line', source: 'corridor',
-        filter: ['==', ['get', 'kind'], 'river-core'],
+        id: 'corridor-core', type: 'line', source: 'corridorCore',
         paint: { 'line-color': '#8ce3cc', 'line-width': 3, 'line-opacity': 0.95 }
       },
       ownerLayers('Tod', OWNER_COLORS.Tod),
@@ -254,7 +233,6 @@ function styleForBasemap(name) {
       ownerLayers('Steve', OWNER_COLORS.Steve)
     ].flat()
   };
-  return style;
 }
 
 function ownerLayers(owner, color) {
@@ -302,12 +280,39 @@ function ownerLayers(owner, color) {
   ];
 }
 
+function ensureTerrainSource() {
+  if (!map) return false;
+  if (!map.getSource('terrainSource')) {
+    try {
+      map.addSource('terrainSource', {
+        type: 'raster-dem',
+        tiles: ['https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        encoding: 'terrarium',
+        maxzoom: 15,
+        attribution: 'Elevation © elevation-tiles-prod'
+      });
+    } catch (error) {
+      console.warn('Terrain source add failed', error);
+      return false;
+    }
+  }
+  return true;
+}
+
 function setTerrainState() {
-  if (!map || !map.getSource('terrainSource')) return;
+  if (!map) return;
   if (terrainEnabled) {
-    map.setTerrain({ source: 'terrainSource', exaggeration: 1.5 });
+    if (!ensureTerrainSource()) return;
+    try {
+      map.setTerrain({ source: 'terrainSource', exaggeration: 1.35 });
+    } catch (error) {
+      console.warn('Terrain enable failed', error);
+      terrainEnabled = false;
+      storageSet(TERRAIN_KEY, '0');
+    }
   } else {
-    map.setTerrain(null);
+    try { map.setTerrain(null); } catch (error) { console.warn('Terrain disable failed', error); }
   }
 }
 
@@ -499,7 +504,7 @@ function cycleBasemap() {
   const pitch = map.getPitch();
   const bearing = map.getBearing();
   map.setStyle(styleForBasemap(currentBasemap));
-  map.once('styledata', () => {
+  map.once('style.load', () => {
     map.jumpTo({ center, zoom, pitch, bearing });
     onStyleReady();
   });
@@ -516,12 +521,17 @@ function registerRealtime() {
 }
 
 function onStyleReady() {
-  setTerrainState();
-  if (draw) { try { map.removeControl(draw); } catch (e) {} draw = null; }
-  initDraw();
   registerPopupLayers();
   updateOwnerVisibility();
   loadFeatures();
+  setTerrainState();
+  if (draw) { try { map.removeControl(draw); } catch (e) {} draw = null; }
+  try {
+    initDraw();
+  } catch (error) {
+    console.error('Draw tools failed to initialize', error);
+    drawHelp.textContent = 'Map loaded, but drawing tools hit a startup problem.';
+  }
   document.body.classList.add('app-ready');
 }
 
@@ -543,13 +553,24 @@ function initMap() {
   map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), 'top-left');
   map.addControl(new maplibregl.ScaleControl({ unit: 'imperial' }), 'bottom-right');
 
-  map.on('load', () => {
+  map.once('style.load', () => {
     try {
       onStyleReady();
     } catch (error) {
-      startupFail('The map loaded, then hit an error while turning on editing tools.', error);
+      startupFail('The map style loaded, then hit an error while turning on editing tools.', error);
     }
   });
+
+  let firstRenderSeen = false;
+  map.on('render', () => { firstRenderSeen = true; });
+  setTimeout(() => {
+    if (!firstRenderSeen && currentBasemap === 'outdoors') {
+      console.warn('No map render detected quickly on Outdoors basemap; switching to satellite fallback.');
+      currentBasemap = 'satellite';
+      storageSet(BASEMAP_KEY, currentBasemap);
+      try { map.setStyle(styleForBasemap(currentBasemap)); } catch (error) { console.error('Fallback style switch failed', error); }
+    }
+  }, 3500);
   map.on('click', event => {
     if (FEATURE_META[currentFeatureType].geometry !== 'point' || featureModal.classList.contains('visible')) return;
     const hits = map.queryRenderedFeatures(event.point, { layers: ['Tod-point','Curt-point','Steve-point','Tod-line','Curt-line','Steve-line','Tod-polygon-fill','Curt-polygon-fill','Steve-polygon-fill'] });
