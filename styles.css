@@ -9,44 +9,23 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; }
 body { background: #12201c; overflow: hidden; }
-#map { position: fixed; inset: 0; z-index: 1; }
+#map { position: fixed; inset: 0; z-index: 1; background:#17322b; }
 #topBadge, #statusBadge, .panel {
-  position: fixed;
-  z-index: 900;
-  background: var(--bg);
-  color: var(--text);
-  backdrop-filter: blur(7px);
-  box-shadow: 0 6px 24px rgba(0,0,0,.25);
+  position: fixed; z-index: 900; background: var(--bg); color: var(--text);
+  backdrop-filter: blur(7px); box-shadow: 0 6px 24px rgba(0,0,0,.25);
 }
 #topBadge {
-  top: max(12px, env(safe-area-inset-top));
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 14px;
-  border-radius: 999px;
-  font-weight: 800;
-  letter-spacing: .02em;
+  top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%);
+  padding: 10px 14px; border-radius: 999px; font-weight: 800; letter-spacing: .02em;
 }
 #statusBadge {
-  left: 12px;
-  bottom: max(12px, env(safe-area-inset-bottom));
-  padding: 9px 11px;
-  border-radius: 10px;
-  font-size: 12px;
-  max-width: min(82vw, 360px);
-  line-height: 1.35;
+  left: 12px; bottom: max(12px, env(safe-area-inset-bottom)); padding: 9px 11px; border-radius: 10px;
+  font-size: 12px; max-width: min(82vw, 380px); line-height: 1.35;
 }
-.panel {
-  border-radius: var(--panel-radius);
-  padding: 10px 12px;
-}
+.panel { border-radius: var(--panel-radius); padding: 10px 12px; }
 .hidden-until-ready { opacity: 0; pointer-events: none; }
 .app-ready .hidden-until-ready { opacity: 1; pointer-events: auto; }
-#legend {
-  top: max(60px, calc(env(safe-area-inset-top) + 50px));
-  left: 12px;
-  min-width: 152px;
-}
+#legend { top: max(60px, calc(env(safe-area-inset-top) + 50px)); left: 12px; min-width: 152px; }
 #legend label { display: block; margin-top: 8px; font-size: 14px; }
 .panel-title { font-weight: 700; margin-bottom: 4px; }
 #topControls { top: max(60px, calc(env(safe-area-inset-top) + 50px)); right: 12px; display: flex; gap: 8px; }
@@ -55,21 +34,13 @@ button, select, input, textarea { font: inherit; border-radius: 10px; border: 1p
 button, select { padding: 9px 11px; }
 button { background: rgba(255,255,255,.12); color: var(--text); border-color: rgba(255,255,255,.1); }
 button.secondary { background: rgba(0,0,0,.07); color: #17211d; border-color: rgba(0,0,0,.12); }
-.modal {
-  position: fixed; inset: 0; z-index: 1100; display: none; align-items: center; justify-content: center; padding: 18px;
-  background: rgba(7, 12, 11, .55); backdrop-filter: blur(6px);
-}
+.modal { position: fixed; inset: 0; z-index: 1100; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(7, 12, 11, .55); backdrop-filter: blur(6px); }
 .modal.visible { display: flex; }
-.modal-card {
-  width: min(520px, 100%); background: rgba(248, 250, 249, 0.98); color: #13201b; padding: 20px; border-radius: 18px;
-  box-shadow: 0 18px 56px rgba(0,0,0,.34);
-}
+.modal-card { width: min(520px, 100%); background: rgba(248, 250, 249, 0.98); color: #13201b; padding: 20px; border-radius: 18px; box-shadow: 0 18px 56px rgba(0,0,0,.34); }
 .modal-card h1, .modal-card h2 { margin: 0 0 8px; }
 .modal-card p { margin: 0 0 16px; line-height: 1.45; }
 .modal-card label { display: block; margin-top: 12px; font-weight: 600; }
-.modal-card input, .modal-card select, .modal-card textarea {
-  display: block; width: 100%; margin-top: 6px; padding: 10px 12px; color: #13201b; background: white;
-}
+.modal-card input, .modal-card select, .modal-card textarea { display: block; width: 100%; margin-top: 6px; padding: 10px 12px; color: #13201b; background: white; }
 .identity-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .identityBtn, #saveFeatureBtn, #saveSettingsBtn { background: #4f8d78; color: white; }
 .button-row { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
