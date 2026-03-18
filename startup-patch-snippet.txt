@@ -1,0 +1,27 @@
+BROKEN LINE:
+identitySelect.value = currentIdentity || "Tod";
+
+REPLACE WITH:
+if (identitySelect) {
+  identitySelect.value = currentIdentity || "Tod";
+} else {
+  console.warn("identitySelect not found; skipping identity selector setup.");
+}
+
+BETTER FULL STARTUP VERSION:
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    var currentIdentity = localStorage.getItem("currentIdentity") || "Tod";
+    var identitySelect = document.getElementById("identitySelect");
+
+    if (identitySelect) {
+      identitySelect.value = currentIdentity || "Tod";
+    } else {
+      console.warn("identitySelect not found; skipping identity selector setup.");
+    }
+
+    // continue normal app startup here
+  } catch (err) {
+    console.error("Startup failed:", err);
+  }
+});
